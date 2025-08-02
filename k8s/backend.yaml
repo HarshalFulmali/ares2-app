@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ares-backend
+spec:
+  selector:
+    matchLabels:
+      app: ares-backend
+  template:
+    metadata:
+      labels:
+        app: ares-backend
+    spec:
+      containers:
+      - name: ares-backend
+        image: docker.io/harshalfulmali2/ares2-backend
+        ports:
+        - containerPort: 8000
+        env: 
+        - name: tree 
+          value: fruit
+--- 
+apiVersion: v1
+kind: Service
+metadata:
+  name: ares-backend
+spec:
+  selector:
+    app: ares-backend
+  ports:
+  - port: 80
+    targetPort: 8000
+

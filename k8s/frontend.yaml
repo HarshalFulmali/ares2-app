@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ares-frontend
+spec:
+  selector:
+    matchLabels:
+      app: ares-frontend
+  template:
+    metadata:
+      labels:
+        app: ares-frontend
+    spec:
+      containers:
+      - name: ares-frontend
+        image: docker.io/harshalfulmali2/ares2-frontend
+        ports:
+        - containerPort: 3000
+        env: 
+        - name: BACKEND_URL
+          value: http://ares-backend.ares.svc.cluster.local/api
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ares-frontend
+spec:
+  selector:
+    app: ares-frontend
+  ports:
+  - port: 80
+    targetPort: 3000
+
