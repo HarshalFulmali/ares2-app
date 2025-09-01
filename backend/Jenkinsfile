@@ -29,7 +29,6 @@ pipeline {
     }
     post {
       success {
-            build job:  'frontend-pipeline', wait: false
             echo 'Deployment succeeded!'
         }
         failure {
