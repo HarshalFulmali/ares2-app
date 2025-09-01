@@ -24,14 +24,15 @@ pipeline {
             }
         }
 
-        post {
-            success {
-                echo 'Express app Deployment succeeded!'
-            }
-            failure {
-                echo 'Express app Deployment failed!'
-            }
-        }
         
+        
+    }
+    post {
+        success {
+            echo 'Express app Deployment succeeded!'
+        }
+        failure {
+            echo 'Express app Deployment failed!'
+        }
     }
 }

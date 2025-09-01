@@ -25,15 +25,16 @@ pipeline {
             }
         }
 
-        post {
-            success {
-                build job:  'frontend-pipeline', wait: false
-                echo 'Deployment succeeded!'
-            }
-            failure {
-                echo 'flask app Deployment failed!'
-            }
-        }
         
+        
+    }
+    post {
+      success {
+            build job:  'frontend-pipeline', wait: false
+            echo 'Deployment succeeded!'
+        }
+        failure {
+            echo 'flask app Deployment failed!'
+        }      
     }
 }
