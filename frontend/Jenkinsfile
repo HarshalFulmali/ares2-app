@@ -11,9 +11,10 @@ pipeline {
 
         stage('Install Dependencies') {
             steps {
-                sh '''
-                npm instal
-                '''
+                sh """
+                cd /home/ubuntu/ares2-app/frontend           
+                npm install
+                """
             }
         }
 
