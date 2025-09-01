@@ -1,0 +1,10 @@
+Ares listening on port 3000
+{
+  data: [
+    'kratos', 'atreus',
+    'freya',  'odin',
+    'zeus',   'ares',
+    'hermes', 'hera',
+    'athena', 'aphrodite'
+  ]
+}

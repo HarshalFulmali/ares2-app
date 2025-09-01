@@ -1,6 +1,6 @@
 FROM node:16-alpine
 
-ENV BACKEND_URL=http://0.0.0.0:8000
+ENV BACKEND_URL=http://0.0.0.0:8000/api
 
 ADD . /app
 

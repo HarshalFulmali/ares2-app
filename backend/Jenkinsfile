@@ -1,0 +1,39 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                sh "'
+                cd /home/ubuntu/ares2-app/backend
+                python3 -m venv venv
+                source venv/bin/activate
+                pip3 install -r requirements.txt
+                '"
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                sh 'pm2 restart flask-app || pm2 start "python3 app.py" --name flask-app'
+            }
+        }
+
+        post {
+            success {
+                build job:  'frontend-pipeline', wait: false
+                echo 'Deployment succeeded!'
+            }
+            failure {
+                echo 'flask app Deployment failed!'
+            }
+        }
+        
+    }
+}

@@ -1,0 +1,37 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Checkout') {
+            steps {
+                
+                checkout scm
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                sh "'
+                cd /home/ubuntu/ares2-app/frontend
+                npm instal
+                '"
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                sh 'pm2 restart express-app || pm2 start "npm start" --name express-app'
+            }
+        }
+
+        post {
+            success {
+                echo 'Express app Deployment succeeded!'
+            }
+            failure {
+                echo 'Express app Deployment failed!'
+            }
+        }
+        
+    }
+}
