@@ -1,41 +1,64 @@
 pipeline {
-    agent any
-    tools {
-        git 'Default'   
+  agent any
+
+  environment {
+    APP_DIR = "/home/ubuntu/ares2-app/backend"
+    VENV    = "/home/ubuntu/ares2-app/backend/venv"
+    GIT_URL = "https://github.com/HarshalFulmali/ares2-app.git"
+    GIT_CREDS = "7c00f801-2e76-4079-bcf8-7a53a4bbf5aa"
+    PM2_PATH = "/home/ubuntu/.pm2/" 
+  }
+
+  options { timestamps() }
+
+  triggers {
+    pollSCM('')
+  }
+
+  stages {
+    stage('Checkout') {
+      steps {
+        git credentialsId: env.GIT_CREDS, url: env.GIT_URL, branch: 'master'
+      }
     }
 
-    stages {
-        stage('Checkout') {
-            steps {
-                checkout scm
-            }
-        }
-
-        stage('Install Dependencies') {
-            steps {
-                sh '''
-                python3 -m venv venv
-                source venv/bin/activate
-                pip install -r requirements.txt
-                '''
-            }
-        }
-
-        stage('Deploy') {
-            steps {
-                sh 'pm2 restart flask-app || pm2 start "python3 app.py" --name flask-app'
-            }
-        }
-
-        
-        
+    stage('Sync to Server Dir') {
+      steps {
+        sh """
+          rsync -a --delete ./ ${APP_DIR}/
+        """
+      }
     }
-    post {
-      success {
-            echo 'Deployment succeeded!'
-        }
-        failure {
-            echo 'flask app Deployment failed!'
-        }      
+
+    stage('Python deps') {
+      steps {
+        sh """
+          python3 -m venv ${VENV} || true
+          . ${VENV}/bin/activate
+          pip install --upgrade pip
+          pip install -r ${APP_DIR}/requirements.txt
+        """
+      }
     }
+
+    stage('Restart Flask (pm2 -> gunicorn wrapper)') {
+      steps {
+        sh '''
+          export NVM_DIR="/home/ubuntu/.nvm"
+          [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+          export PATH="/home/ubuntu/.nvm/versions/node/$(node -v)/bin:$PATH"
+
+          # Start or restart the process by name
+          pm2 start /opt/apps/flask-app/run_gunicorn.sh --name flask-app || true
+          pm2 restart flask-app
+          pm2 save
+        '''
+      }
+    }
+  }
+
+  post {
+    success { echo 'Flask deployed ✅' }
+    failure { echo 'Flask deployment failed ❌' }
+  }
 }

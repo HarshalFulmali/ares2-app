@@ -1,41 +1,64 @@
 pipeline {
-    agent any
-    tools {
-        git 'Default'   
+  agent any
+
+  environment {
+    APP_DIR = "/home/ubuntu/ares2-app/frontend"
+    GIT_URL = "https://github.com/HarshalFulmali/ares2-app.git"
+    GIT_CREDS = "7c00f801-2e76-4079-bcf8-7a53a4bbf5aa"
+  }
+
+  options { timestamps() }
+
+  triggers {
+    // optional in addition to GitHub webhook
+    pollSCM('')
+  }
+
+  stages {
+    stage('Checkout') {
+      steps {
+        git credentialsId: env.GIT_CREDS, url: env.GIT_URL, branch: 'master'
+      }
     }
 
-    stages {
-        stage('Checkout') {
-            steps {
-                
-                checkout scm
-            }
-        }
-
-        stage('Install Dependencies') {
-            steps {
-                sh """
-                cd /home/ubuntu/ares2-app/frontend           
-                npm install
-                """
-            }
-        }
-
-        stage('Deploy') {
-            steps {
-                sh 'pm2 restart express-app || pm2 start "npm start" --name express-app'
-            }
-        }
-
-        
-        
+    stage('Sync to Server Dir') {
+      steps {
+        sh """
+          rsync -a --delete ./ ${APP_DIR}/
+        """
+      }
     }
-    post {
-        success {
-            echo 'Express app Deployment succeeded!'
-        }
-        failure {
-            echo 'Express app Deployment failed!'
-        }
+
+    stage('Node deps') {
+      steps {
+        sh '''
+          export NVM_DIR="/home/ubuntu/.nvm"
+          [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+          export PATH="/home/ubuntu/.nvm/versions/node/$(node -v)/bin:$PATH"
+
+          cd /opt/apps/express-app
+          if [ -f package-lock.json ]; then npm ci; else npm install; fi
+        '''
+      }
     }
+
+    stage('Restart Express (pm2)') {
+      steps {
+        sh '''
+          export NVM_DIR="/home/ubuntu/.nvm"
+          [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+          export PATH="/home/ubuntu/.nvm/versions/node/$(node -v)/bin:$PATH"
+
+          pm2 start "npm start" --name express-app || true
+          pm2 restart express-app
+          pm2 save
+        '''
+      }
+    }
+  }
+
+  post {
+    success { echo 'Express deployed ✅' }
+    failure { echo 'Express deployment failed ❌' }
+  }
 }
