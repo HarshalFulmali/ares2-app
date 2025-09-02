@@ -25,8 +25,8 @@ pipeline {
     stage('Sync to Server Dir') {
     steps {
         sh '''
-            # Sync backend code to target dir
-            rsync -a --delete backend/ /home/ubuntu/ares2-app/backend/
+            sudo mkdir -p /home/ubuntu/ares2-app/backend
+            sudo chown -R jenkins:jenkins /home/ubuntu/ares2-app
             '''
         }
     }
