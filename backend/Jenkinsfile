@@ -24,9 +24,14 @@ pipeline {
 
     stage('Sync to Server Dir') {
       steps {
-        sh """
-          rsync -a --delete ./ ${APP_DIR}/
-        """
+        sh '''
+            # Make sure target dir exists
+            sudo mkdir -p $APP_DIR
+            sudo chown -R jenkins:jenkins $APP_DIR
+
+            # Sync repo into backend dir
+            rsync -a --delete backend/ $APP_DIR/
+                '''
       }
     }
 
