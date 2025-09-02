@@ -23,14 +23,14 @@ pipeline {
     }
 
     stage('Sync to Server Dir') {
-      steps {
+    steps {
         sh '''
-            mkdir -p $APP_DIR
-            rsync -a --delete backend/ $APP_DIR/
-        '''
-
-      }
+            # Sync backend code to target dir
+            rsync -a --delete backend/ /home/ubuntu/ares2-app/backend/
+            '''
+        }
     }
+
 
     stage('Python deps') {
       steps {
