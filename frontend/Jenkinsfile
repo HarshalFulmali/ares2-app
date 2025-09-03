@@ -7,14 +7,16 @@ pipeline {
     GIT_CREDS = "7c00f801-2e76-4079-bcf8-7a53a4bbf5aa"
   }
 
-  options { timestamps() }
-
-  triggers {
-    // optional in addition to GitHub webhook
-    pollSCM('')
-  }
 
   stages {
+    stage('Prepare') {
+      steps {
+        sh '''
+          umask 0000
+          echo "Current umask is: $(umask)"
+          '''
+      }
+    }
     stage('Checkout') {
       steps {
         git credentialsId: env.GIT_CREDS, url: env.GIT_URL, branch: 'master'

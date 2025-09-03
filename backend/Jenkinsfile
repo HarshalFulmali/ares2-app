@@ -4,37 +4,29 @@ pipeline {
   environment {
     APP_DIR = "/home/ubuntu/ares2-app/backend"
     VENV    = "/home/ubuntu/ares2-app/backend/venv"
-    GIT_URL = "https://github.com/HarshalFulmali/ares2-app.git"
-    GIT_CREDS = "7c00f801-2e76-4079-bcf8-7a53a4bbf5aa"
-    PM2_PATH = "/home/ubuntu/.pm2/" 
   }
 
   options { timestamps() }
 
-  triggers {
-    pollSCM('')
-  }
-
   stages {
     stage('Checkout') {
       steps {
-        git credentialsId: env.GIT_CREDS, url: env.GIT_URL, branch: 'master'
+        checkout scm
       }
     }
 
-    stage('Sync to Server Dir') {
-    steps {
-        sh '''
-            sudo mkdir -p /home/ubuntu/ares2-app/backend
-            sudo chown -R jenkins:jenkins /home/ubuntu/ares2-app
-            '''
-        }
-    }
-
-
-    stage('Python deps') {
+    stage('Sync Backend Code') {
       steps {
         sh """
+          rsync -a --delete ./backend/ ${APP_DIR}/
+        """
+      }
+    }
+
+    stage('Install Python Deps') {
+      steps {
+        sh """
+          # Reuse existing venv or create if missing
           python3 -m venv ${VENV} || true
           . ${VENV}/bin/activate
           pip install --upgrade pip
@@ -43,15 +35,14 @@ pipeline {
       }
     }
 
-    stage('Restart Flask (pm2 -> gunicorn wrapper)') {
+    stage('Restart Flask') {
       steps {
         sh '''
           export NVM_DIR="/home/ubuntu/.nvm"
           [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
-          export PATH="/home/ubuntu/.nvm/versions/node/$(node -v)/bin:$PATH"
+          export PATH="$NVM_DIR/versions/node/$(node -v)/bin:$PATH"
 
-          # Start or restart the process by name
-          pm2 start /opt/apps/flask-app/run_gunicorn.sh --name flask-app || true
+          pm2 start /home/ubuntu/ares2-app/backend/run_gunicorn.sh --name flask-app || true
           pm2 restart flask-app
           pm2 save
         '''
@@ -60,7 +51,7 @@ pipeline {
   }
 
   post {
-    success { echo 'Flask deployed ✅' }
-    failure { echo 'Flask deployment failed ❌' }
+    success { echo '✅ Flask backend deployed' }
+    failure { echo '❌ Flask backend failed' }
   }
 }
