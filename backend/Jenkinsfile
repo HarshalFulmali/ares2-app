@@ -38,11 +38,10 @@ pipeline {
       steps {
         sh '''
           cd /home/ubuntu/ares2-app/backend
-          
-          source venv/bin/activate
+          . venv/bin/activate
           pm2 delete flask-app || true
           pm2 start "python3 app.py" --name flask-app
-          pm2 save
+          pm2 save 
         '''
       }
     }
