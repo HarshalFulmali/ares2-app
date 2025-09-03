@@ -26,7 +26,6 @@ pipeline {
     stage('Install Python Deps') {
       steps {
         sh """
-          # Reuse existing venv or create if missing
           python3 -m venv ${VENV} || true
           . ${VENV}/bin/activate
           pip install --upgrade pip
@@ -38,12 +37,11 @@ pipeline {
     stage('Restart Flask') {
       steps {
         sh '''
-          export NVM_DIR="/home/ubuntu/.nvm"
-          [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
-          export PATH="$NVM_DIR/versions/node/$(node -v)/bin:$PATH"
-
-          pm2 start "python3 app.py" --name flask-app || true
-          pm2 restart flask-app
+          cd /home/ubuntu/ares2-app/backend
+          
+          source venv/bin/activate
+          pm2 delete flask-app || true
+          pm2 start "python3 app.py" --name flask-app
           pm2 save
         '''
       }
