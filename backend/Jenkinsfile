@@ -51,7 +51,7 @@ pipeline {
   }
 
   post {
-    success { echo '✅ Flask backend deployed' }
-    failure { echo '❌ Flask backend failed' }
+    success { echo 'Flask backend deployed' }
+    failure { echo 'Flask backend failed' }
   }
 }
