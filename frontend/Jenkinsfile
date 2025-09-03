@@ -26,12 +26,12 @@ pipeline {
     stage('Node deps') {
       steps {
         sh '''
-          export NVM_DIR="/home/ubuntu/.nvm"
-          [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
-          export PATH="/home/ubuntu/.nvm/versions/node/$(node -v)/bin:$PATH"
+          export NVM_DIR=/home/ubuntu/.nvm
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 
-          cd /home/ubuntu/ares2-app/frontend
-          if [ -f package-lock.json ]; then npm ci; else npm install; fi
+            cd /home/ubuntu/ares2-app/frontend
+
+            npm install
         '''
       }
     }
@@ -39,13 +39,8 @@ pipeline {
     stage('Restart Express (pm2)') {
       steps {
         sh '''
-          export NVM_DIR="/home/ubuntu/.nvm"
-          [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
-          export PATH="/home/ubuntu/.nvm/versions/node/$(node -v)/bin:$PATH"
-
-          pm2 start "npm start" --name express-app || true
-          pm2 restart express-app
-          pm2 save
+          cd /home/ubuntu/ares2-app/frontend
+          pm2 restart express-app || pm2 start "npm start" --name express-app --update-env
         '''
       }
     }
