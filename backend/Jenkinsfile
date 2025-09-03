@@ -42,7 +42,7 @@ pipeline {
           [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
           export PATH="$NVM_DIR/versions/node/$(node -v)/bin:$PATH"
 
-          pm2 start /home/ubuntu/ares2-app/backend/run_gunicorn.sh --name flask-app || true
+          pm2 start "python3 app.py" --name flask-app || true
           pm2 restart flask-app
           pm2 save
         '''
